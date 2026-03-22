@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: mystery-quest
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        value: changeme_before_event
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mystery-quest-db
+          property: connectionString
+
+databases:
+  - name: mystery-quest-db
+    plan: free

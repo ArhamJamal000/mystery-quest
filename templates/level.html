@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Top Bar -->
+<div class="level-top-bar">
+    <div class="level-info">
+        <h3 style="color: var(--cyan); margin: 0; line-height: 1;">🎬 MYSTERY QUEST</h3>
+        <div style="margin-top: var(--sp-1);"><span class="level-badge">Level {{ level }} of 5</span></div>
+    </div>
+    <div class="timer-display" id="timer">00:00</div>
+    <div class="level-info" style="text-align: right;">
+        <div style="font-family: var(--font-body); font-weight: bold; color: var(--gold); text-transform: uppercase;">{{ team.name }}</div>
+        <div class="muted" style="font-size: 0.8rem; text-transform: uppercase;">⚠️ Penalty: +{{ team.penalty_secs }}s</div>
+    </div>
+</div>
+
+<!-- Main Game Card -->
+<main class="card" style="max-width: 760px; margin: 0 auto; border-top-color: var(--gold);">
+    <div style="position: absolute; top: var(--sp-4); right: var(--sp-4); font-family: var(--font-body); font-size: 0.7rem; color: var(--gold); border: 1px solid rgba(255,184,0,0.3); padding: 2px 6px; text-transform: uppercase; letter-spacing: 0.1em; background: rgba(255,184,0,0.05); border-radius: 2px;">
+        {% if data.type == 'password' %}🔐 PASSWORD{% elif data.type == 'hidden' %}🔍 HIDDEN CLUE{% elif data.type == 'chat' %}💬 INTERCEPT{% elif data.type == 'meme' %}🤡 DIGITAL TRACE{% else %}🧩 FINAL ENIGMA{% endif %}
+    </div>
+
+    <!-- Story Context -->
+    <div class="story">
+        {{ data.story }}
+    </div>
+
+    <!-- Level Content Body -->
+    {% if data.type == 'password' %}
+        <div class="clues-container">
+            {% for hint in data.hints %}
+            <div class="clue-card">
+                <span class="clue-number">CLUE {{ loop.index }}</span> {{ hint }}
+            </div>
+            {% endfor %}
+            <p style="margin-top: var(--sp-5); font-weight: bold; font-size: 1.1rem;">{{ data.question }}</p>
+        </div>
+
+    {% elif data.type == 'hidden' %}
+        <div class="evidence-card">
+            <div class="evidence-header">📄 EVIDENCE FILE #MQ-02</div>
+            <pre style="white-space: pre-wrap; font-family: inherit;">{{ data.visible_text }}</pre>
+            <span class="hidden-text">{{ data.hidden_text }}</span>
+        </div>
+        <p class="muted" style="font-size: 0.85rem; text-align: center; margin-bottom: var(--sp-4);">👁️ Some things hide in plain sight. Look carefully.</p>
+        <p style="font-weight: bold; font-size: 1.1rem;">{{ data.question }}</p>
+
+    {% elif data.type == 'chat' %}
+        <div class="phone-mockup">
+            <div class="phone-notch"></div>
+            <div class="chat-header">🕵️ Anonymous Tipster <span style="color: #4CAF50;">●</span></div>
+            <div class="chat-messages">
+                {% for msg in data.messages %}
+                <div class="chat-bubble {{ loop.cycle('left', 'right') }}" style="animation-delay: {{ loop.index0 * 0.2 }}s;">
+                    {{ msg.text }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <p style="font-weight: bold; font-size: 1.1rem; text-align: center;">{{ data.question }}</p>
+
+    {% elif data.type == 'meme' %}
+        <div class="meme-card">
+            <div class="meme-text">{{ data.meme_top }}</div>
+            <div class="meme-emoji">{{ data.meme_emoji }}</div>
+            <div class="meme-text">{{ data.meme_bottom }}</div>
+            <div class="meme-hidden">{{ data.hidden_tag }}</div>
+        </div>
+        <p class="hindi-text text-center muted" style="margin-bottom: var(--sp-4);">{{ data.hint_text }}</p>
+        <p style="font-weight: bold; font-size: 1.1rem; text-align: center;">{{ data.question }}</p>
+
+    {% elif data.type == 'riddle' %}
+        <div class="text-center" style="margin-bottom: var(--sp-4);">
+            <div style="display: inline-block; background: linear-gradient(90deg, transparent, rgba(200, 16, 46, 0.2), transparent); color: var(--crimson); font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 0.2em; padding: var(--sp-2) var(--sp-8); border-top: 1px solid var(--crimson); border-bottom: 1px solid var(--crimson);">FINAL MISSION</div>
+        </div>
+        <div class="evidence-board">
+            {% for clue in data.clues %}
+            <div class="sticky-note" style="--rot: {{ [-3, -2, -1, 1, 2, 3] | random }};">
+                <strong style="color: #990000; font-size: 0.8rem; display: block; border-bottom: 1px solid rgba(0,0,0,0.1); margin-bottom: 8px;">🧩 CLUE {{ loop.index }}</strong>
+                {{ clue }}
+            </div>
+            {% endfor %}
+        </div>
+        <p style="font-weight: bold; font-size: 1.1rem; text-align: center;">{{ data.question }}</p>
+        <p class="muted text-center" style="font-style: italic; font-size: 0.85rem;">You're one answer away. Don't blow it.</p>
+    {% endif %}
+
+    <!-- Input Form -->
+    <div class="submit-area">
+        <form id="answer-form" action="{{ url_for('submit_answer', n=level) }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="answer-input" name="answer" placeholder="Enter password / answer here..." required autocomplete="off" style="font-size: 1.2rem; text-align: center; border-width: 2px;">
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: var(--sp-3);">
+                {% if data.type == 'password' %}🔐 UNLOCK{% else %}SUBMIT ANSWER{% endif %}
+            </button>
+        </form>
+    </div>
+</main>
+
+<!-- Toasts and Overlays -->
+<div id="error-message" class="error-toast"></div>
+
+<div id="success-overlay" class="success-overlay">
+    <div class="success-icon">✅</div>
+    <h2 style="color: #fff; text-shadow: var(--glow-gold);">CORRECT!</h2>
+    <p class="muted">Moving to next level...</p>
+</div>
+
+{% endblock %}

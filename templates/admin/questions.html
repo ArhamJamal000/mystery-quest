@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="card admin-questions" style="background: rgba(13, 13, 20, 0.9);">
+    <header style="border-bottom: 1px solid var(--border); padding-bottom: var(--sp-4); margin-bottom: var(--sp-5);">
+        <h1 style="font-size: 2rem; color: #fff;">🛠️ EDIT QUESTIONS</h1>
+        <nav class="admin-nav" style="margin-top: var(--sp-3);">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn-outline" style="border-color: var(--text-muted); color: var(--text-muted); font-size: 0.9rem; padding: 4px 12px;">← Back to Dashboard</a>
+        </nav>
+    </header>
+
+    {% if settings.event_started_at %}
+    <div style="background: rgba(255, 184, 0, 0.1); border-left: 4px solid var(--gold); padding: var(--sp-3); margin-bottom: var(--sp-5); color: var(--gold); font-size: 0.9rem;">
+        <strong>⚠️ Event is live.</strong> Question editing is locked. Stop the event to re-enable.
+    </div>
+    {% endif %}
+
+    <section style="position: relative;">
+        {% if settings.event_started_at %}
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <div style="font-family: var(--font-display); font-size: 15rem; color: rgba(255, 184, 0, 0.05); transform: rotate(-30deg);">LOCKED</div>
+        </div>
+        {% endif %}
+
+        {% for pool in ['A', 'B', 'C'] %}
+        <div style="margin-bottom: var(--sp-7);">
+            <h2 style="color: var(--gold); border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: var(--sp-2); margin-bottom: var(--sp-4);">Pool {{ pool }}</h2>
+            {% for level in range(1, 6) %}
+            <div style="background: var(--bg-deep); border: 1px solid var(--border); padding: var(--sp-4); border-radius: 4px; margin-bottom: var(--sp-3);">
+                <h3 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: var(--sp-3);">Level {{ level }} · <span style="color: var(--cyan); text-transform: uppercase;">{{ banks[pool][level].type }}</span></h3>
+                {% if settings.event_started_at %}
+                    <input type="text" disabled value="[LOCKED] {{ banks[pool][level].answer }}" style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #666;">
+                {% else %}
+                    <label style="font-size: 0.8rem; color: #888; display: block; margin-bottom: 4px;">Answer:</label>
+                    <input type="text" value="{{ banks[pool][level].answer }}" style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff;">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </section>
+</main>
+{% endblock %}

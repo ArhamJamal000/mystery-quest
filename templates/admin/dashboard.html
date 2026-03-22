@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="card admin-dashboard" style="background: rgba(13, 13, 20, 0.9);">
+    <header style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid var(--border); padding-bottom: var(--sp-4);">
+        <div>
+            <h1 style="font-size: 2rem; color: #fff;">MYSTERY QUEST — ADMIN</h1>
+            <nav class="admin-nav" style="margin-top: var(--sp-3);">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn-outline" style="background: rgba(255,184,0,0.1); font-size: 0.9rem; padding: 4px 12px;">Dashboard</a>
+                <a href="{{ url_for('admin_questions') }}" class="btn-outline" style="border-color: var(--text-muted); color: var(--text-muted); font-size: 0.9rem; padding: 4px 12px;">Questions</a>
+                <a href="{{ url_for('admin_settings') }}" class="btn-outline" style="border-color: var(--text-muted); color: var(--text-muted); font-size: 0.9rem; padding: 4px 12px;">Settings</a>
+            </nav>
+        </div>
+        <div style="display: flex; gap: var(--sp-3); align-items: center;">
+            <a href="{{ url_for('admin_export') }}" class="btn-outline" style="font-size: 0.8rem; padding: 4px 12px;"><span style="margin-right: 4px;">📥</span> EXPORT CSV</a>
+            <a href="{{ url_for('admin_logout') }}" class="btn-primary btn-danger" style="font-size: 0.8rem; padding: 4px 12px; box-shadow: none;">LOGOUT</a>
+        </div>
+    </header>
+
+    {% if settings.game_active %}
+    <div style="background: rgba(255, 184, 0, 0.1); border-left: 4px solid var(--gold); padding: var(--sp-3); margin: var(--sp-5) 0; color: var(--gold); font-size: 0.9rem;">
+        ⚠️ Event is LIVE. Question editing is locked.
+    </div>
+    {% endif %}
+
+    <section class="admin-stats-row">
+        <div class="admin-stat">
+            <h4>Total Teams</h4>
+            <span>{{ teams|length }}</span>
+        </div>
+        <div class="admin-stat">
+            <h4>Completed</h4>
+            <span style="color: var(--success);">{{ teams|selectattr('completed', 'equalto', True)|list|length }}</span>
+        </div>
+        <div class="admin-stat">
+            <h4>In Progress</h4>
+            <span style="color: var(--cyan);">{{ teams|selectattr('completed', 'equalto', False)|selectattr('disqualified', 'equalto', False)|list|length }}</span>
+        </div>
+        <div class="admin-stat">
+            <h4>Timed Out</h4>
+            <span style="color: var(--crimson);">{{ teams|selectattr('disqualified', 'equalto', True)|list|length }}</span>
+        </div>
+    </section>
+
+    <section style="margin-bottom: var(--sp-6);">
+        <h4 style="color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; margin-bottom: var(--sp-2);">Pool Distribution</h4>
+        <div style="display: flex; gap: var(--sp-5);">
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem;"><span>Pool A</span> <span>{{ pool_counts['A'] }}</span></div>
+                <div class="pool-bar"><div class="pool-fill" style="width: min(100%, {{ pool_counts['A'] * 3 }}%); background: var(--cyan);"></div></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem;"><span>Pool B</span> <span>{{ pool_counts['B'] }}</span></div>
+                <div class="pool-bar"><div class="pool-fill" style="width: min(100%, {{ pool_counts['B'] * 3 }}%); background: var(--gold);"></div></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem;"><span>Pool C</span> <span>{{ pool_counts['C'] }}</span></div>
+                <div class="pool-bar"><div class="pool-fill" style="width: min(100%, {{ pool_counts['C'] * 3 }}%); background: var(--crimson);"></div></div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-4);">
+            <h3 style="font-family: var(--font-body); font-size: 1rem; color: #fff;">LIVE TEAMS</h3>
+            {% if not settings.game_active %}
+                <form action="{{ url_for('start_event') }}" method="POST" style="margin: 0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-primary" style="font-size: 0.8rem; padding: 6px 16px;">▶ START EVENT</button>
+                </form>
+            {% else %}
+                <div style="font-family: var(--font-display); color: var(--gold); font-size: 1.2rem;">Event running: <span id="admin-timer" data-seconds="{{ event_timer }}"></span></div>
+            {% endif %}
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Pool</th>
+                        <th>Level</th>
+                        <th>Raw (s)</th>
+                        <th>Penalty</th>
+                        <th>Adj (s)</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-table-body">
+                    {% for team in teams|sort(attribute='id') %}
+                    <tr>
+                        <td style="font-weight: bold;">{{ team.name }} <br><span class="muted" style="font-size: 0.75rem; font-weight: normal;">{{ team.roll_number }}</span></td>
+                        <td>{{ team.question_pool }}</td>
+                        <td>{% if team.completed %}5 ✓{% else %}{{ team.current_level }}{% endif %}</td>
+                        <td style="font-family: monospace;">{{ get_elapsed(team)|int }}</td>
+                        <td style="color: var(--crimson); font-family: monospace;">+{{ team.penalty_secs }}</td>
+                        <td style="font-family: monospace; font-weight: bold; color: var(--gold);">{{ (get_elapsed(team) + team.penalty_secs)|int if not team.completed else team.total_time }}</td>
+                        <td>
+                            {% if team.completed %}
+                                <span class="badge badge-gold">Solved</span>
+                            {% elif team.disqualified %}
+                                <span class="badge badge-crimson">Timed Out</span>
+                            {% else %}
+                                <span class="badge badge-cyan">Playing</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not team.completed and not team.disqualified %}
+                            <div style="display: flex; gap: 8px;">
+                                <form action="{{ url_for('force_advance', id=team.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Force advance team to next level?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-outline" style="font-size: 0.7rem; padding: 2px 8px; border-color: var(--cyan); color: var(--cyan);">⏩ ADV</button>
+                                </form>
+                                <form action="{{ url_for('kick_team', id=team.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Kick this team?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-outline" style="font-size: 0.7rem; padding: 2px 8px; border-color: var(--crimson); color: var(--crimson);">🚫 KICK</button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    
+    <script>
+        setTimeout(() => { window.location.reload(); }, 10000);
+        
+        const timerEl = document.getElementById('admin-timer');
+        if (timerEl) {
+            let secs = parseInt(timerEl.getAttribute('data-seconds'));
+            setInterval(() => {
+                secs++;
+                const h = Math.floor(secs / 3600);
+                const m = Math.floor((secs % 3600) / 60);
+                const s = secs % 60;
+                let text = "";
+                if (h > 0) text += h.toString().padStart(2, '0') + ":";
+                text += m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
+                timerEl.innerText = text;
+            }, 1000);
+        }
+    </script>
+</main>
+{% endblock %}

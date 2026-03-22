@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="card admin-settings" style="max-width: 600px; margin: 0 auto; background: rgba(13, 13, 20, 0.9);">
+    <header style="border-bottom: 1px solid var(--border); padding-bottom: var(--sp-4); margin-bottom: var(--sp-5);">
+        <h1 style="font-size: 2rem; color: #fff;">🛠️ SETTINGS</h1>
+        <nav class="admin-nav" style="margin-top: var(--sp-3);">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn-outline" style="border-color: var(--text-muted); color: var(--text-muted); font-size: 0.9rem; padding: 4px 12px;">← Back to Dashboard</a>
+        </nav>
+    </header>
+
+    <section>
+        <div style="background: var(--bg-deep); border: 1px solid var(--border); padding: var(--sp-5); border-radius: 4px; margin-bottom: var(--sp-6);">
+            <h3 style="font-size: 1.1rem; margin-bottom: var(--sp-4);">Game Controls</h3>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: var(--sp-3); margin-bottom: var(--sp-3);">
+                <span class="muted">Game Active</span>
+                <span style="font-weight: bold; padding: 4px 12px; border-radius: 4px; {% if settings.game_active %}background: rgba(255,184,0,0.2); color: var(--gold);{% else %}background: rgba(200,16,46,0.2); color: var(--crimson);{% endif %}">
+                    {{ 'ON' if settings.game_active else 'OFF' }}
+                </span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: var(--sp-3); margin-bottom: var(--sp-3);">
+                <span class="muted">Time Limit</span>
+                <span style="font-family: var(--font-body); font-weight: bold; font-size: 1.2rem;">{{ settings.time_limit_mins }} mins</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="muted">Penalty Per Wrong Default</span>
+                <span style="font-family: var(--font-body); font-weight: bold; font-size: 1.2rem; color: var(--crimson);">{{ settings.penalty_secs }} secs</span>
+            </div>
+        </div>
+
+        <form action="{{ url_for('admin_reset') }}" method="POST" style="background: rgba(200,16,46,0.1); border: 1px solid rgba(200,16,46,0.3); padding: var(--sp-5); border-radius: 4px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <h3 style="color: var(--crimson); margin-bottom: var(--sp-4);">⚠ DANGER ZONE</h3>
+            <div class="form-group" style="margin-bottom: var(--sp-4);">
+                <label style="color: var(--crimson);">Type "RESET" to confirm wipe of all teams and attempts:</label>
+                <input type="text" name="confirm_text" placeholder="RESET" required style="border-color: rgba(200,16,46,0.5); background: rgba(0,0,0,0.5);">
+            </div>
+            <button type="submit" class="btn-primary btn-danger" style="width: 100%; border-radius: 4px;">WIPE DATABASE</button>
+        </form>
+    </section>
+</main>
+{% endblock %}

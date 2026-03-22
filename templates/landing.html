@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="landing-hero">
+    <div class="rahasya-bg">रहस्य</div>
+    
+    <div class="eyebrow">Lords Institute · Sanketika Fest 2026 · Datanova Presents</div>
+    <h1 class="hero-title">MYSTERY<br>QUEST</h1>
+    <p class="hero-subtitle">The Bollywood Breakout Quiz<br>5 Levels · 3 Pools · 90 Minutes · One Winner</p>
+    
+    <div class="hero-actions">
+        <a href="#registration" class="btn-primary">ENTER THE QUEST</a>
+        <a href="{{ url_for('leaderboard') }}" class="btn-outline">VIEW LEADERBOARD</a>
+    </div>
+</div>
+
+<div id="registration" class="card registration-card">
+    <div class="stamp-text">CASE FILE #MQ26</div>
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z'/%3E%3C/svg%3E" alt="watermark" class="watermark">
+    
+    <h3 style="margin-bottom: var(--sp-4); color: var(--gold);">Agent Registration</h3>
+
+    {% if game_active %}
+    <form action="{{ url_for('register') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+            <label for="name">Team Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter your team name" required>
+        </div>
+        <div class="form-group">
+            <label for="roll_number">Roll Number</label>
+            <input type="text" id="roll_number" name="roll_number" placeholder="Enter roll number" required autocomplete="off">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: var(--sp-2);">Start Your Quest →</button>
+        <p class="muted" style="font-size: 0.8rem; margin-top: var(--sp-3); text-align: center;">Already registered? Your session will resume automatically.</p>
+    </form>
+    {% else %}
+    <div class="text-center" style="padding: var(--sp-5) 0;">
+        <p style="font-size: 2rem; margin-bottom: var(--sp-3);">⏳</p>
+        <p class="muted"><strong>Event hasn't started yet.</strong><br>Stay ready, Detective.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

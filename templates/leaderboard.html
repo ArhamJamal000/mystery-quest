@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="card" style="max-width: 900px; margin: 0 auto; background: rgba(5,5,8,0.6); padding-top: var(--sp-5);">
+    <header class="text-center" style="margin-bottom: var(--sp-7);">
+        <h1 style="color: var(--gold); text-shadow: var(--glow-gold); font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: var(--sp-2);">🏆 LEADERBOARD</h1>
+        <p class="muted"><span style="color: var(--success); text-shadow: 0 0 10px var(--success);">●</span> Live · Auto-refreshing every 30 seconds</p>
+    </header>
+    
+    <section>
+        <div class="podium-container" id="podium-container">
+            <!-- Podium injected by JS if data exists -->
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Rank</th>
+                        <th>Team Name</th>
+                        <th style="width: 100px;">Levels</th>
+                        <th style="width: 120px;">Time (s)</th>
+                        <th style="width: 160px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <tr><td colspan="5" class="text-center muted" style="padding: var(--sp-6);">Fetching live data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--sp-6); padding-top: var(--sp-4); border-top: 1px solid var(--border);">
+            <div class="muted" style="font-size: 0.8rem;" id="last-updated">Updating...</div>
+            <button onclick="if(window.fetchLb) window.fetchLb()" class="btn-outline" style="font-size: 0.8rem; padding: var(--sp-2) var(--sp-4);">REFRESH NOW</button>
+        </div>
+    </section>
+</main>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="vignette-pulse"></div>
+<main class="cinematic-card timeout-card">
+    <header style="margin-bottom: var(--sp-6);">
+        <div style="font-size: 6rem; margin-bottom: var(--sp-4); animation: pulse 1s infinite alternate; text-shadow: var(--glow-crimson); color: var(--crimson);">⏰</div>
+        <h1 class="hero-title" style="font-size: clamp(2.5rem, 8vw, 4.5rem); color: var(--crimson); text-shadow: var(--glow-crimson); line-height: 0.95;">WAQT NIKAL<br>GAYA, BHAI.</h1>
+        <p class="muted" style="font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.2em; margin-top: var(--sp-4);">Time's up. The mystery remains unsolved.</p>
+    </header>
+    
+    <section>
+        <div class="stats-board" style="opacity: 0.8; border-color: rgba(200, 16, 46, 0.3); background: rgba(13, 13, 20, 0.8);">
+            <div class="stat-item">
+                <div class="stat-label">You Reached</div>
+                <div class="stat-val" style="color: var(--text-primary); font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 0.05em;">Level {{ team.current_level }} <span style="font-size: 1rem; color: var(--text-muted); font-family: var(--font-body);">of 5</span></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Time Elapsed</div>
+                <div class="stat-val" style="color: var(--crimson); font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 0.1em; text-shadow: var(--glow-crimson);">90:00+</div>
+            </div>
+        </div>
+        
+        <p class="hindi-text text-center muted" style="font-style: italic; margin: var(--sp-6) 0; font-size: 1.1rem;">
+            "Agli baar aana. Inspector Virkar wait karega."
+        </p>
+        
+        <div style="display: flex; gap: var(--sp-4); justify-content: center;">
+            <a href="{{ url_for('leaderboard') }}" class="btn-outline" style="border-color: var(--text-muted); color: var(--text-primary);">VIEW LEADERBOARD</a>
+            <a href="{{ url_for('index') }}" class="btn-primary" style="background: rgba(255,255,255,0.1); color: #fff; box-shadow: none;">GO BACK HOME</a>
+        </div>
+    </section>
+</main>
+{% endblock %}

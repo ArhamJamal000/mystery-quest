@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="cinematic-card">
+    <header>
+        <div class="eyebrow" style="color: #fff;">🎬 CASE FILE OPENED</div>
+    </header>
+    <section>
+        <h1 class="hero-title" style="font-size: clamp(3rem, 8vw, 6rem); margin-bottom: 0;">{{ team.name }}</h1>
+        <p class="muted" style="font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.2em;">Agent ID: {{ team.roll_number }}</p>
+        
+        <div class="countdown-val" id="countdown">3</div>
+        <p class="muted" style="font-family: var(--font-body);">Your mission begins in...</p>
+        
+        <a href="{{ url_for('level', n=1) }}" id="start-btn" style="display:none; margin-top: var(--sp-5);" class="btn-primary">BEGIN MISSION →</a>
+    </section>
+</main>
+{% endblock %}
