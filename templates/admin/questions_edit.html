@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="card admin-settings" style="max-width: 900px; margin: 0 auto; background: rgba(13, 13, 20, 0.9);">
+    <header style="border-bottom: 1px solid var(--border); padding-bottom: var(--sp-4); margin-bottom: var(--sp-5); display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="font-size: 2rem; color: #fff;">📝 EDIT QUESTIONS JSON</h1>
+        <a href="{{ url_for('admin_questions') }}" class="btn-outline" style="border-color: var(--text-muted); color: var(--text-muted); padding: 6px 16px;">← Cancel</a>
+    </header>
+
+    <div style="background: rgba(200, 16, 46, 0.1); border-left: 4px solid var(--crimson); padding: var(--sp-4); margin-bottom: var(--sp-5); border-radius: 4px;">
+        <h3 style="color: var(--crimson); margin-bottom: 8px;">⚠️ Warning: Edit with Caution</h3>
+        <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">
+            This is the raw JSON configuration for all game questions. A single syntax mistake (like a missing comma) will break the application.
+            Make sure to backup the original contents before saving changes. Note: Dictionary keys like "1", "2" must remain strings in JSON.
+        </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin_questions_edit') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div style="margin-bottom: var(--sp-4);">
+            <textarea name="questions_json" style="width: 100%; height: 60vh; background: #1e1e1e; color: #d4d4d4; font-family: monospace; font-size: 14px; padding: 16px; border: 1px solid var(--border); border-radius: 8px; resize: vertical;" spellcheck="false">{{ raw_json }}</textarea>
+        </div>
+
+        <div style="text-align: right;">
+            <button type="submit" class="btn-primary" style="padding: 12px 24px; font-size: 1.1rem; border-radius: 4px;">Save JSON Configuration</button>
+        </div>
+    </form>
+</main>
+{% endblock %}

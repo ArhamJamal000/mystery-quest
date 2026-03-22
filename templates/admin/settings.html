@@ -19,15 +19,23 @@
                 </span>
             </div>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: var(--sp-3); margin-bottom: var(--sp-3);">
-                <span class="muted">Time Limit</span>
-                <span style="font-family: var(--font-body); font-weight: bold; font-size: 1.2rem;">{{ settings.time_limit_mins }} mins</span>
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="muted">Penalty Per Wrong Default</span>
-                <span style="font-family: var(--font-body); font-weight: bold; font-size: 1.2rem; color: var(--crimson);">{{ settings.penalty_secs }} secs</span>
-            </div>
+            <form action="{{ url_for('admin_settings') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: var(--sp-3); margin-bottom: var(--sp-3);">
+                    <span class="muted">Time Limit (mins)</span>
+                    <input type="number" name="time_limit_mins" value="{{ settings.time_limit_mins }}" style="width: 100px; text-align: right; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: #fff; padding: 4px 8px; border-radius: 4px;">
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: var(--sp-3); margin-bottom: var(--sp-3);">
+                    <span class="muted">Penalty Per Wrong (secs)</span>
+                    <input type="number" name="penalty_secs" value="{{ settings.penalty_secs }}" style="width: 100px; text-align: right; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: var(--crimson); padding: 4px 8px; border-radius: 4px; font-weight: bold;">
+                </div>
+                
+                <div style="text-align: right; margin-bottom: var(--sp-3);">
+                    <button type="submit" class="btn-primary" style="padding: 6px 16px; font-size: 0.9rem; border-radius: 4px;">Save Settings</button>
+                </div>
+            </form>
         </div>
 
         <form action="{{ url_for('admin_reset') }}" method="POST" style="background: rgba(200,16,46,0.1); border: 1px solid rgba(200,16,46,0.3); padding: var(--sp-5); border-radius: 4px;">

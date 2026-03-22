@@ -2,8 +2,22 @@ import os
 from flask import Flask, session, redirect, url_for, render_template, request, jsonify, flash
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import db, Team, LevelAttempt, GameSettings
-from questions import QUESTION_BANKS
+import json
 from datetime import datetime
+
+def get_question_banks():
+    json_path = os.path.join(os.path.dirname(__file__), 'questions.json')
+    if not os.path.exists(json_path):
+        from questions import QUESTION_BANKS
+        return QUESTION_BANKS
+    with open(json_path, 'r', encoding='utf-8') as f:
+        raw = json.load(f)
+    banks = {}
+    for pool, levels in raw.items():
+        banks[pool] = {}
+        for level_str, data in levels.items():
+            banks[pool][int(level_str)] = data
+    return banks
 import random
 
 # PRE-EVENT CHECKLIST:
@@ -59,7 +73,7 @@ WRONG_MESSAGES = [
 ]
 
 def validate_answer(team, level, submitted):
-    bank = QUESTION_BANKS[team.question_pool][level]
+    bank = get_question_banks()[team.question_pool][level]
     correct = bank['answer'].strip().lower()
     if submitted.strip().lower() == correct:
         return True
@@ -163,7 +177,7 @@ def level(n):
     if team.current_level != n:
         return "Forbidden", 403
 
-    question_data = QUESTION_BANKS[team.question_pool][n]
+    question_data = get_question_banks()[team.question_pool][n]
     safe_data = {k: v for k, v in question_data.items() if k != 'answer'}
 
     return render_template('level.html', team=team, level=n, data=safe_data)
@@ -369,16 +383,55 @@ def admin_dashboard():
     
     return render_template('admin/dashboard.html', settings=settings, teams=teams, pool_counts=pool_counts, event_timer=event_timer, get_elapsed=get_elapsed)
 
-@app.route('/admin/settings')
+@app.route('/admin/settings', methods=['GET', 'POST'])
 def admin_settings():
     if not session.get('admin'): return redirect(url_for('admin_login'))
-    return render_template('admin/settings.html', settings=GameSettings.query.first())
+    settings = GameSettings.query.first()
+    
+    if request.method == 'POST':
+        try:
+            time_limit = int(request.form.get('time_limit_mins', settings.time_limit_mins))
+            penalty = int(request.form.get('penalty_secs', settings.penalty_secs))
+            settings.time_limit_mins = time_limit
+            settings.penalty_secs = penalty
+            db.session.commit()
+            flash("Settings updated successfully.")
+        except ValueError:
+            flash("Invalid input. Please enter numbers.")
+        return redirect(url_for('admin_settings'))
+        
+    return render_template('admin/settings.html', settings=settings)
 
 @app.route('/admin/questions')
 def admin_questions():
     if not session.get('admin'): return redirect(url_for('admin_login'))
     settings = GameSettings.query.first()
-    return render_template('admin/questions.html', settings=settings, banks=QUESTION_BANKS)
+    return render_template('admin/questions.html', settings=settings, banks=get_question_banks())
+
+@app.route('/admin/questions/edit', methods=['GET', 'POST'])
+def admin_questions_edit():
+    if not session.get('admin'): return redirect(url_for('admin_login'))
+    json_path = os.path.join(os.path.dirname(__file__), 'questions.json')
+    
+    if request.method == 'POST':
+        new_json = request.form.get('questions_json')
+        try:
+            parsed = json.loads(new_json)
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(parsed, f, indent=4)
+            flash("Questions updated successfully!")
+            return redirect(url_for('admin_questions'))
+        except Exception as e:
+            flash(f"Error parsing JSON: {str(e)}")
+            
+    if not os.path.exists(json_path):
+        from questions import QUESTION_BANKS
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(QUESTION_BANKS, f, indent=4)
+            
+    with open(json_path, 'r', encoding='utf-8') as f:
+        current_json = f.read()
+    return render_template('admin/questions_edit.html', raw_json=current_json)
 
 @app.route('/admin/start-event', methods=['POST'])
 def start_event():
