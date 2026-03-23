@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="card timeout-card" style="text-align: center; max-width: 600px; margin: 4rem auto;">
+    <div class="stamp-text" style="color: var(--gold); border-color: var(--gold);">LOBBY</div>
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E" alt="watermark" class="watermark">
+    
+    <h2 class="hero-title" style="font-size: 2.5rem; margin-bottom: 1rem;">WAITING FOR EVENT...</h2>
+    
+    <p class="muted" style="font-size: 1.1rem; margin-bottom: 2rem;">
+        Welcome, Agent <strong>{{ team.name }}</strong>. 
+        <br><br>
+        The event has not started yet. Stay on this page—you will automatically be transported to Level 1 as soon as the administrator begins the game.
+    </p>
+
+    <div style="margin-top: 3rem; text-align: left; background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="font-family: var(--font-mono); color: var(--gold); margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+            JOINED TEAMS (<span id="team-count">{{ teams|length }}</span>)
+        </h3>
+        <ul id="team-list" style="list-style-type: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.9rem;">
+            {% for t in teams %}
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">✓ {{ t.name }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Poll the server every 3 seconds
+    setInterval(function() {
+        fetch('/api/lobby-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.game_active) {
+                    // Event started! Redirect to index, which will route to Level 1
+                    window.location.href = '/';
+                } else if (data.teams) {
+                    // Update the list of teams
+                    const teamList = document.getElementById('team-list');
+                    teamList.innerHTML = '';
+                    data.teams.forEach(t => {
+                        const li = document.createElement('li');
+                        li.style = "padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);";
+                        li.textContent = "✓ " + t.name;
+                        teamList.appendChild(li);
+                    });
+                    document.getElementById('team-count').textContent = data.teams.length;
+                }
+            })
+            .catch(err => console.error('Error fetching lobby status:', err));
+    }, 3000);
+</script>
+
+{% endblock %}

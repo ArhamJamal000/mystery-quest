@@ -20,7 +20,6 @@
     
     <h3 style="margin-bottom: var(--sp-4); color: var(--gold);">Agent Registration</h3>
 
-    {% if game_active %}
     <form action="{{ url_for('register') }}" method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
@@ -34,12 +33,6 @@
         <button type="submit" class="btn-primary" style="width: 100%; margin-top: var(--sp-2);">Start Your Quest →</button>
         <p class="muted" style="font-size: 0.8rem; margin-top: var(--sp-3); text-align: center;">Already registered? Your session will resume automatically.</p>
     </form>
-    {% else %}
-    <div class="text-center" style="padding: var(--sp-5) 0;">
-        <p style="font-size: 2rem; margin-bottom: var(--sp-3);">⏳</p>
-        <p class="muted"><strong>Event hasn't started yet.</strong><br>Stay ready, Detective.</p>
-    </div>
-    {% endif %}
 </div>
 
 {% endblock %}

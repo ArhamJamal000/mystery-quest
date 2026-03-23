@@ -108,17 +108,15 @@ def index():
                 return redirect(url_for('timeout'))
             if team.completed:
                 return redirect(url_for('victory'))
+            settings = GameSettings.query.first()
+            if not settings.game_active:
+                return redirect(url_for('lobby'))
             return redirect(url_for('level', n=team.current_level))
     settings = GameSettings.query.first()
     return render_template('landing.html', game_active=settings.game_active)
 
 @app.route('/register', methods=['POST'])
 def register():
-    settings = GameSettings.query.first()
-    if not settings.game_active:
-        flash("Game has not started yet! Please wait for the organizer to begin.")
-        return redirect(url_for('index'))
-
     name = request.form.get('name')
     roll_number = request.form.get('roll_number')
 
@@ -137,7 +135,7 @@ def register():
         name=name,
         roll_number=roll_number,
         question_pool=pool,
-        start_time=datetime.utcnow()
+        start_time=None
     )
     db.session.add(new_team)
     try:
@@ -166,10 +164,18 @@ def level(n):
         session.pop('team_id', None)
         return redirect(url_for('index'))
     
+    settings = GameSettings.query.first()
+    if not settings.game_active:
+        return redirect(url_for('lobby'))
+        
     if team.disqualified:
         return redirect(url_for('timeout'))
     if team.completed:
         return redirect(url_for('victory'))
+        
+    if not team.start_time:
+        team.start_time = datetime.utcnow()
+        db.session.commit()
     
     if check_time_limit(team):
         return redirect(url_for('timeout'))
@@ -255,6 +261,32 @@ def timeout():
 @app.route('/leaderboard')
 def leaderboard():
     return render_template('leaderboard.html')
+
+@app.route('/lobby')
+def lobby():
+    if 'team_id' not in session:
+        return redirect(url_for('index'))
+    team = db.session.get(Team, session['team_id'])
+    if not team:
+        session.pop('team_id', None)
+        return redirect(url_for('index'))
+        
+    settings = GameSettings.query.first()
+    if settings.game_active:
+        return redirect(url_for('index'))
+        
+    teams = Team.query.order_by(Team.registered_at.desc()).all()
+    return render_template('lobby.html', team=team, teams=teams)
+
+@app.route('/api/lobby-status')
+def lobby_status():
+    settings = GameSettings.query.first()
+    teams = Team.query.order_by(Team.registered_at.desc()).all()
+    team_list = [{"name": t.name} for t in teams]
+    return jsonify({
+        "game_active": settings.game_active,
+        "teams": team_list
+    })
 
 # ----- API ROUTES -----
 
